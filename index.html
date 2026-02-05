@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lab 4 – Map Design & Tiles Generation</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+  <!-- Mapbox GL JS -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .panel {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 2;
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      max-width: 360px;
+    }
+
+    .panel h1 {
+      font-size: 14px;
+      margin: 0 0 6px 0;
+    }
+
+    .panel p {
+      font-size: 12px;
+      margin: 0 0 10px 0;
+      line-height: 1.35;
+    }
+
+    .modes {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .modes label {
+      display: flex;
+      gap: 6px;
+      align-items: flex-start;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class="panel">
+    <h1>Lab 4 – Tile Sets (Mapbox GL JS)</h1>
+    <p>
+      This web map demonstrates four tile sets: a custom basemap,
+      a thematic parcel layer, a combined basemap with parcels,
+      and a themed map style.
+    </p>
+
+    <div class="modes">
+      <label><input type="radio" name="mode" value="1" checked> Tile set 1 — Basemap</label>
+      <label><input type="radio" name="mode" value="2"> Tile set 2 — Parcels only</label>
+      <label><input type="radio" name="mode" value="3"> Tile set 3 — Basemap + Parcels</label>
+      <label><input type="radio" name="mode" value="4"> Tile set 4 — Theme map</label>
+    </div>
+  </div>
+
+<script>
+  // =========================
+  // MAPBOX TOKEN (PUBLIC)
+  // =========================
+  mapboxgl.accessToken =
+    "pk.eyJ1IjoibXJjbGx2bmgiLCJhIjoiY21sOTR6NWYyMGU4NTNmcHdhZG9tZjk5cyJ9.-tdOKe08OGmM8H7mDOxYjA";
+
+  // =========================
+  // TILE SET 1 & 4 (STUDIO STYLES)
+  // =========================
+  const BASEMAP_STYLE_URL =
+    "mapbox://styles/mrcllvnh/cml95ey4p002501sz68graiit";
+
+  const THEME_STYLE_URL =
+    "mapbox://styles/mrcllvnh/cml974of8004001sgaoajd4dm";
+
+  // =========================
+  // TILE SET 2 DATA (PARCELS TILESET)
+  // =========================
+  const PARCELS_TILESET_URL =
+    "mapbox://mrcllvnh.9y47bden";
+
+  const PARCELS_SOURCE_LAYER =
+    "PUBLIC_PARCELS_AREA_2598_-789-defver";
+
+  const PARCELS_SOURCE_ID = "parcels";
+  const PARCELS_LAYER_ID  = "parcels-fill";
+
+  const DEFAULT_VIEW = {
+    center: [-122.33, 47.61],
+    zoom: 11
+  };
+
+  // =========================
+  // BLANK STYLE (FOR TILE SET 2)
+  // =========================
+  function blankStyle() {
+    return {
+      version: 8,
+      name: "Parcels only",
+      sources: {},
+      layers: [
+        {
+          id: "background",
+          type: "background",
+          paint: { "background-color": "#0b1020" }
+        }
+      ]
+    };
+  }
+
+  // =========================
+  // INIT MAP
+  // =========================
+  const map = new mapboxgl.Map({
+    container: "map",
+    style: BASEMAP_STYLE_URL,
+    center: DEFAULT_VIEW.center,
+    zoom: DEFAULT_VIEW.zoom
+  });
+
+  map.addControl(new mapboxgl.NavigationControl(), "top-right");
+  map.addControl(new mapboxgl.ScaleControl({ maxWidth: 120, unit: "imperial" }));
+  map.addControl(new mapboxgl.AttributionControl({ compact: true }));
+
+  // =========================
+  // PARCEL LAYER HELPERS
+  // =========================
+  function addParcels() {
+    if (!map.getSource(PARCELS_SOURCE_ID)) {
+      map.addSource(PARCELS_SOURCE_ID, {
+        type: "vector",
+        url: PARCELS_TILESET_URL
+      });
+    }
+
+    if (!map.getLayer(PARCELS_LAYER_ID)) {
+      map.addLayer({
+        id: PARCELS_LAYER_ID,
+        type: "fill",
+        source: PARCELS_SOURCE_ID,
+        "source-layer": PARCELS_SOURCE_LAYER,
+        paint: {
+          "fill-color": "#22c55e",
+          "fill-opacity": 0.45,
+          "fill-outline-color": "#16a34a"
+        }
+      });
+    }
+  }
+
+  function removeParcels() {
+    if (map.getLayer(PARCELS_LAYER_ID)) map.removeLayer(PARCELS_LAYER_ID);
+    if (map.getSource(PARCELS_SOURCE_ID)) map.removeSource(PARCELS_SOURCE_ID);
+  }
+
+  // =========================
+  // MODE SWITCHER
+  // =========================
+  function applyMode(mode) {
+    if (mode === "1") {
+      map.setStyle(BASEMAP_STYLE_URL);
+      map.once("style.load", () => {
+        removeParcels();
+        map.jumpTo(DEFAULT_VIEW);
+      });
+    }
+
+    if (mode === "2") {
+      map.setStyle(blankStyle());
+      map.once("style.load", () => {
+        addParcels();
+        map.jumpTo(DEFAULT_VIEW);
+      });
+    }
+
+    if (mode === "3") {
+      map.setStyle(BASEMAP_STYLE_URL);
+      map.once("style.load", () => {
+        addParcels();
+        map.jumpTo(DEFAULT_VIEW);
+      });
+    }
+
+    if (mode === "4") {
+      map.setStyle(THEME_STYLE_URL);
+      map.once("style.load", () => {
+        removeParcels();
+        map.jumpTo(DEFAULT_VIEW);
+      });
+    }
+  }
+
+  map.on("load", () => applyMode("1"));
+
+  document.querySelectorAll('input[name="mode"]').forEach((radio) => {
+    radio.addEventListener("change", (e) => applyMode(e.target.value));
+  });
+</script>
+</body>
+</html>
