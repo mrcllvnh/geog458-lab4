@@ -1,6 +1,6 @@
 # Lab 4 – Map Design and Tiles Generation
 
-This project demonstrates the creation and visualization of four tile sets using **Mapbox GL JS** and **Mapbox Studio**, focusing on parcel data in Seattle, Washington.
+This project demonstrates the creation and visualization of four tile sets using **Mapbox GL JS** and **Mapbox Studio**, focusing on parcel data in University District, Seattle, Washington.
 
 ---
 
@@ -63,3 +63,6 @@ This map uses a bold purple color scheme and visual contrast to emphasize parcel
 - Mapbox Studio
 - Mapbox GL JS
 - GitHub Pages
+
+## Data Source
+Parcel data used is from King County Open Data (parcels dataset).
