@@ -10,52 +10,20 @@
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js"></script>
 
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    }
-    #map {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 100%;
-    }
+    body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
 
-    .panel {
-      position: absolute;
-      top: 12px;
-      left: 12px;
-      z-index: 2;
+    .panel{
+      position:absolute; top:12px; left:12px; z-index:2;
       background: rgba(255,255,255,0.95);
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-      max-width: 360px;
+      border-radius:12px; padding:12px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.15);
+      max-width:360px;
     }
-
-    .panel h1 {
-      font-size: 14px;
-      margin: 0 0 6px 0;
-    }
-
-    .panel p {
-      font-size: 12px;
-      margin: 0 0 10px 0;
-      line-height: 1.35;
-    }
-
-    .modes {
-      display: grid;
-      gap: 6px;
-      font-size: 12px;
-    }
-
-    .modes label {
-      display: flex;
-      gap: 6px;
-      align-items: flex-start;
-    }
+    .panel h1{ font-size:14px; margin:0 0 6px 0; }
+    .panel p{ font-size:12px; margin:0 0 10px 0; line-height:1.35; }
+    .modes{ display:grid; gap:6px; font-size:12px; }
+    .modes label{ display:flex; gap:6px; align-items:flex-start; }
   </style>
 </head>
 
@@ -97,19 +65,18 @@
   // =========================
   // TILE SET 2 DATA (PARCELS TILESET)
   // =========================
-  const PARCELS_TILESET_URL =
-    "mapbox://mrcllvnh.9y47bden";
-
-  const PARCELS_SOURCE_LAYER =
-    "PUBLIC_PARCELS_AREA_2598_-789-defver";
+  const PARCELS_TILESET_URL = "mapbox://mrcllvnh.9y47bden";
+  const PARCELS_SOURCE_LAYER = "PUBLIC_PARCELS_AREA_2598_-789-defver";
 
   const PARCELS_SOURCE_ID = "parcels";
-  const PARCELS_LAYER_ID  = "parcels-fill";
+  const PARCELS_FILL_ID   = "parcels-fill";
+  const PARCELS_LINE_ID   = "parcels-outline";
 
-  const DEFAULT_VIEW = {
-    center: [-122.33, 47.61],
-    zoom: 11
-  };
+  // View for general Seattle
+  const DEFAULT_VIEW = { center: [-122.33, 47.61], zoom: 11 };
+
+  // View where your theme style clearly shows parcels (from your Studio screenshot area)
+  const THEME_VIEW = { center: [-122.313949, 47.664269], zoom: 16 };
 
   // =========================
   // BLANK STYLE (FOR TILE SET 2)
@@ -120,11 +87,7 @@
       name: "Parcels only",
       sources: {},
       layers: [
-        {
-          id: "background",
-          type: "background",
-          paint: { "background-color": "#0b1020" }
-        }
+        { id: "background", type: "background", paint: { "background-color": "#0b1020" } }
       ]
     };
   }
@@ -145,6 +108,7 @@
 
   // =========================
   // PARCEL LAYER HELPERS
+  // IMPORTANT: Mapbox Standard needs "slot" for custom layers
   // =========================
   function addParcels() {
     if (!map.getSource(PARCELS_SOURCE_ID)) {
@@ -154,28 +118,47 @@
       });
     }
 
-    if (!map.getLayer(PARCELS_LAYER_ID)) {
+    // Fill
+    if (!map.getLayer(PARCELS_FILL_ID)) {
       map.addLayer({
-        id: PARCELS_LAYER_ID,
+        id: PARCELS_FILL_ID,
         type: "fill",
         source: PARCELS_SOURCE_ID,
         "source-layer": PARCELS_SOURCE_LAYER,
+        slot: "middle",                 // ✅ key fix for Mapbox Standard
         paint: {
           "fill-color": "#22c55e",
-          "fill-opacity": 0.45,
-          "fill-outline-color": "#16a34a"
+          "fill-opacity": 0.45
+        }
+      });
+    }
+
+    // Outline
+    if (!map.getLayer(PARCELS_LINE_ID)) {
+      map.addLayer({
+        id: PARCELS_LINE_ID,
+        type: "line",
+        source: PARCELS_SOURCE_ID,
+        "source-layer": PARCELS_SOURCE_LAYER,
+        slot: "middle",                 // ✅ key fix for Mapbox Standard
+        paint: {
+          "line-color": "#16a34a",
+          "line-width": 1
         }
       });
     }
   }
 
   function removeParcels() {
-    if (map.getLayer(PARCELS_LAYER_ID)) map.removeLayer(PARCELS_LAYER_ID);
+    if (map.getLayer(PARCELS_LINE_ID)) map.removeLayer(PARCELS_LINE_ID);
+    if (map.getLayer(PARCELS_FILL_ID)) map.removeLayer(PARCELS_FILL_ID);
     if (map.getSource(PARCELS_SOURCE_ID)) map.removeSource(PARCELS_SOURCE_ID);
   }
 
   // =========================
   // MODE SWITCHER
+  // Use style.load for blank style, and style.load for setStyle
+  // but for Standard, style.load is fine; slot is what was missing.
   // =========================
   function applyMode(mode) {
     if (mode === "1") {
@@ -184,6 +167,7 @@
         removeParcels();
         map.jumpTo(DEFAULT_VIEW);
       });
+      return;
     }
 
     if (mode === "2") {
@@ -192,6 +176,7 @@
         addParcels();
         map.jumpTo(DEFAULT_VIEW);
       });
+      return;
     }
 
     if (mode === "3") {
@@ -200,14 +185,17 @@
         addParcels();
         map.jumpTo(DEFAULT_VIEW);
       });
+      return;
     }
 
     if (mode === "4") {
       map.setStyle(THEME_STYLE_URL);
       map.once("style.load", () => {
+        // Theme style already contains the thematic parcels, so don't add my green parcels
         removeParcels();
-        map.jumpTo(DEFAULT_VIEW);
+        map.jumpTo(THEME_VIEW);  // ✅ important so you actually SEE the themed parcels
       });
+      return;
     }
   }
 
