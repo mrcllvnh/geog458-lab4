@@ -4,18 +4,18 @@ This project demonstrates the creation and visualization of four tile sets using
 
 ---
 
-## 🌐 Web Map URL
+## Web Map URL
 https://mrcllvnh.github.io/geog458-lab4/
 
 ---
 
-## 🗺️ Examined Geographic Area
+## Examined Geographic Area
 The examined geographic area is **University District, Seattle, Washington (King County)**.  
 The thematic dataset focuses on **public parcel polygons** within the city and surrounding areas.
 
 ---
 
-## 🧱 Tile Sets Overview
+## Tile Sets Overview
 
 ### Tile set 1 — Basemap
 A customized basemap created in Mapbox Studio using Mapbox Standard as the base.  
@@ -59,7 +59,7 @@ This map uses a bold purple color scheme and visual contrast to emphasize parcel
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 - Mapbox Studio
 - Mapbox GL JS
 - GitHub Pages
