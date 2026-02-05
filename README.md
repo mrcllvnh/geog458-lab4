@@ -10,7 +10,7 @@ https://mrcllvnh.github.io/geog458-lab4/
 ---
 
 ## 🗺️ Examined Geographic Area
-The examined geographic area is **Seattle, Washington (King County)**.  
+The examined geographic area is **University District, Seattle, Washington (King County)**.  
 The thematic dataset focuses on **public parcel polygons** within the city and surrounding areas.
 
 ---
